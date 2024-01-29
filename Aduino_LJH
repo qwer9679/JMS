@@ -1,0 +1,65 @@
+#include <OzOLED.h>
+#include <Wire.h>
+
+int WaterpumpRelaypin = 2;
+
+void setup() {
+  // put your setup code here, to run once:
+  OzOled.init();
+  OzOled.clearDisplay();           //clear the screen and set start position to top left corner
+  OzOled.setNormalDisplay();       //Set display to Normal mode
+  OzOled.setHorizontalMode();      //Set addressing mode to Horizontal Mode
+
+  Serial.begin(9600);
+  pinMode(WaterpumpRelaypin, OUTPUT);
+}
+
+void loop() {
+  int GroundHumi;  //지면의 습도
+  int WaterLevel;  //물높이
+  GroundHumi = analogRead(0);
+  WaterLevel = analogRead(1);  //750~800?
+
+
+  OzOled.clearDisplay();
+
+
+  if (WaterLevel <= 750) {
+    if (GroundHumi >= 430) {
+      //제거 중지, 공급 시작
+      digitalWrite(WaterpumpRelaypin, HIGH);
+      OzOled.printString("INPump  : ON    OutPump : OFF   ");
+    } else if (GroundHumi <= 350) {
+      //공급 중지, 제거 시작
+      digitalWrite(WaterpumpRelaypin, LOW);
+      OzOled.printString("InPump  : OFF   OutPump : ON    ");
+    }
+  } else {
+    //공급 중지, 제거 시작
+    digitalWrite(WaterpumpRelaypin, LOW);
+    OzOled.printString("InPump  : OFF   OutPump : ON    ");
+  }
+
+  if(WaterLevel >= 700)
+    OzOled.printString("Water : High    ");
+  else if(WaterLevel < 600)
+    OzOled.printString("Water : LOW     ");
+  else
+    OzOled.printString("Water : Middle  ");
+
+
+  if(GroundHumi >= 430)
+    OzOled.printString("Ground : Dry    ");
+  else if(GroundHumi < 350)
+    OzOled.printString("Ground : Wet    ");
+  else
+    OzOled.printString("Ground : moist  ");
+
+
+  Serial.print("물높이 : ");
+  Serial.print(WaterLevel);
+  Serial.print(", 지면 습도 : ");
+  Serial.println(GroundHumi);
+
+  delay(2000);
+}
